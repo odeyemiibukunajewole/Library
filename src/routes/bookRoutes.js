@@ -49,12 +49,25 @@ function router(nav) {
   ];
 
   bookRouter.route('/').get((req, res) => {
+<<<<<<< HEAD
     res.render('booksListView',
       {
         title: 'Library',
         nav,
         books
       });
+=======
+    const request = new sql.Request();
+    request.query('select * from books').then((result) => {
+      debug(result);
+      res.render('booksListView',
+        {
+          title: 'Library',
+          nav,
+          books
+        });
+    });
+>>>>>>> 44bfd7d... add database to my library app
   });
 
   bookRouter.route('/:id')
