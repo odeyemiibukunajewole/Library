@@ -1,87 +1,44 @@
 const express = require('express');
-const bookRouter = express.Router();
-function router(nav) {
-  const books = [{
-    author: 'Chinua Achebe',
-    title: 'Things Fall Apart',
-    read: false
-  },
-  {
-    author: 'Hans Christian Andersen',
-    title: 'Fairy tales',
-    read: false
-  },
-  {
-    author: 'Dante Alighieri',
-    title: 'The Divine Comedy',
-    read: false,
-  },
-  {
-    author: 'Jane Austen',
-    title: 'Pride and Prejudice',
-    read: false,
-  },
-  {
-    author: 'Samuel Beckett',
-    title: 'Molloy, Malone Dies, The Unnamable, the trilogy',
-    read: false
-  },
-  {
-    author: 'Ralph Ellison',
-    title: 'Invisible Man',
-    read: false
-  },
-  {
-    author: 'Euripides',
-    title: 'Medea',
-    read: false
-  },
-  {
-    author: 'William Faulkner',
-    title: 'The Sound and the Fury',
-    read: false
-  },
-  {
-    author: 'Gustave Flaubert',
-    title: 'Madame Bovary',
-    read: false
-  }
-  ];
 
+const bookRouter = express.Router();
+const sql = require('mssql');
+const debug = require('debug')('app:bookroutes');
+
+
+function router(nav) {
   bookRouter.route('/').get((req, res) => {
-<<<<<<< HEAD
-    res.render('booksListView',
-      {
-        title: 'Library',
-        nav,
-        books
-      });
-=======
-    const request = new sql.Request();
-    request.query('select * from books').then((result) => {
-      debug(result);
+    (async function query() {
+      const request = new sql.Request();
+      const { recordset } = await request.query('select * from books');
+      // debug(result);
       res.render('booksListView',
         {
           title: 'Library',
           nav,
-          books
+          books: recordset
         });
-    });
->>>>>>> 44bfd7d... add database to my library app
+    }());
   });
 
-  bookRouter.route('/:id')
-    .get((req, res) => {
+  bookRouter.route('/:id').all((req, res, next) => {
+    (async function query() {
       const { id } = req.params;
+      const request = new sql.Request();
+      const { recordset } = await request.input('id', sql.Int, id).query('select * from books where id = @id');
+      [req.book] = recordset;
+      next();
+      debug(recordset);
+    }());
+  })
+    .get((req, res) => {
       res.render('bookView',
         {
           title: 'Library',
           nav,
-          books: books[id]
+          books: req.book
         });
     });
+
   return bookRouter;
 }
-
-
 module.exports = router;
